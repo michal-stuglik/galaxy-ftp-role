@@ -1,0 +1,13 @@
+---
+# helps to set options in proftpd for virtualbox
+virtual_box: false
+production: true
+
+galaxy_user: galaxy
+
+ftp_data_dir: /home/galaxy/galaxy-database/ftp
+ftp_upload_site: localhost
+ftp_db_user: galaxyftp
+ftp_db_user_password: doremifasolasido
+ftp_server_name: "FTP server"
+ftp_db_port: 21

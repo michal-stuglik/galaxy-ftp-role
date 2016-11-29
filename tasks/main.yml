@@ -1,0 +1,34 @@
+---
+
+  - name: Install FTP packages for production settings
+    apt: pkg={{ item }} state=installed update-cache=yes
+    when: ansible_os_family == "Debian" and production
+    with_items:
+      - proftpd
+      - proftpd-mod-pgsql
+
+  - name: Copy FTP modules config from templates
+    template: src=modules.conf.j2 dest=/etc/proftpd/modules.conf
+    when: ansible_os_family == "Debian" and production
+
+  - name: Copy FTP config from templates
+    template: src=proftpd.conf.j2 dest=/etc/proftpd/proftpd.conf
+    when: ansible_os_family == "Debian" and production
+
+  - name: Copy FTP sql config from templates
+    template: src=sql.conf.j2 dest=/etc/proftpd/sql.conf
+    when: ansible_os_family == "Debian" and production
+
+  - name: Copy FTP welcome file from templates
+    template: src=proftpd_welcome.txt.j2 dest=/etc/proftpd/proftpd_welcome.txt
+    when: ansible_os_family == "Debian" and production
+
+  - name: Setting FTP user in Postgres database
+    postgresql_user: db={{ galaxy_user }} name={{ ftp_db_user }} password={{ ftp_db_user_password }} priv=galaxy_user:SELECT
+    become: true
+    become_user: postgres
+    notify: Restart postgres
+
+  - name: ReStart ProFTPd service
+    command: systemctl restart proftpd
+    ignore_errors: yes

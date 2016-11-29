@@ -1,0 +1,74 @@
+#
+# Includes required DSO modules. This is mandatory in proftpd 1.3
+#
+
+Include	/etc/proftpd/modules.conf
+
+# Basics, some site-specific
+ServerName                      {{ ftp_server_name }}
+ServerType                      standalone
+DefaultServer                   on
+Port                            {{ ftp_db_port }}
+Umask                           077
+SyslogFacility                  DAEMON
+SyslogLevel                     debug
+MaxInstances                    30
+
+# This User & Group should be set to the actual user and group name which matche the UID & GID you will specify later in the SQLNamedQuery.
+User                            nobody
+Group                           nogroup
+DisplayConnect                  /etc/proftpd/proftpd_welcome.txt
+
+{% if virtual_box %}
+# Passive port range for the firewall, local VBox stuff
+PassivePorts                    65532 65534
+{% else %}
+# Passive port range for the firewall
+PassivePorts                    30000 40000
+{% endif %}
+
+# Cause every FTP user to be "jailed" (chrooted) into their home directory
+DefaultRoot                     ~
+
+# Automatically create home directory if it doesn't exist
+CreateHome                      on dirmode 0777
+
+# Allow users to overwrite their files
+AllowOverwrite                  on
+
+# Allow users to resume interrupted uploads
+AllowStoreRestart               on
+
+# Bar use of SITE CHMOD
+<Limit SITE_CHMOD>
+    DenyAll
+</Limit>
+
+# Bar use of RETR (download) since this is not a public file drop
+<Limit RETR>
+    DenyAll
+</Limit>
+
+# Do not authenticate against real (system) users
+<IfModule mod_auth_pam.c>
+AuthPAM                         off
+</IfModule>
+
+Include /etc/proftpd/sql.conf
+
+RequireValidShell         off
+
+# local VBox stuff
+{% if virtual_box %}
+MasqueradeAddress               127.0.0.1
+{% endif %}
+
+#################### NOTES ####################
+# For testing run:
+# proftpd --config /etc/proftpd/proftpd.conf -n -d 10
+#
+# original chmod
+# CreateHome                      on dirmode 700
+#
+# HowTo setup with VirtualBox
+# http://blog.braddonnelly.com/setting-up-a-nated-virtualbox-ftp-and-webserver-with-proftpd/
